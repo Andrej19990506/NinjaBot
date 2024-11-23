@@ -26,9 +26,10 @@ chat_ids = {
     "Баумана": None,
     "Свердловская": None,
     "Матезалки": None,
-    "Камунальная": None
+    "Комунальная": None
 }
 selected_chats = []  # Список для хранения выбранных групп
+
 # employees = [
 #     {"fio": "Иванов Иван", "rank": "Специалист", "position": "Инженер", "hours": None},
 #     {"fio": "Петров Петр", "rank": "Мастер", "position": "Техник", "hours": None},
@@ -139,45 +140,42 @@ def save_chat_ids(chat_ids, filename='chat_ids.json'):
     with open(filename, 'w') as file:
         json.dump(chat_ids, file)
 
-# async def welcome_message(update: Update, context: CallbackContext) -> None:
-#     global chat_ids
-#     if update.message.new_chat_members:
-#         for member in update.message.new_chat_members:
-#             if member.id == context.bot.id:  # Проверка, что это ваш бот
-#                 group_name = update.message.chat.title
-#                 print(f"Название группы: {group_name}")
 
-#                 if group_name in chat_ids:
-#                     if chat_ids[group_name] is None:
-#                         chat_ids[group_name] = update.message.chat.id
-#                         save_chat_ids(chat_ids)
-#                         print(f"Сохранен ID группы '{group_name}': {chat_ids[group_name]}")
+async def welcome_message(update: Update, context: CallbackContext) -> None:
+    global chat_ids
+    if update.message.new_chat_members:
+        for member in update.message.new_chat_members:
+            if member.id == context.bot.id:  # Проверка, что это ваш бот
+                group_name = update.message.chat.title
+                print(f"Название группы: {group_name}")
 
-#                 await context.bot.send_message(chat_id=update.message.chat.id, 
-#                     text=f"Привет {group_name}! Я бот, который поможет вам управлять важными событиями.")
+                if group_name in chat_ids:
+                    if chat_ids[group_name] is None:
+                        chat_ids[group_name] = update.message.chat.id
+                        save_chat_ids(chat_ids)
+                        print(f"Сохранен ID группы '{group_name}': {chat_ids[group_name]}")
 
-#                 # Выполняем команду /start
-#                 await start(update, context)
+                await context.bot.send_message(chat_id=update.message.chat.id, 
+                    text=f"Привет {group_name}! Я бот, который поможет вам управлять важными событиями.")
 
-#                 # Дополнительное приветственное сообщение
-#                 welcome_text = "Если вам нужна помощь, просто спросите!"
-#                 welcome_message_response = await context.bot.send_message(chat_id=update.message.chat.id, text=welcome_text)
 
-#                 # Закрепление сообщения
-#                 await pin_message(context, update.message.chat.id, welcome_message_response.message_id)
+                # Закрепление сообщения
+                await pin_message(context, update.message.chat.id)
 
-# async def pin_message(context: CallbackContext, chat_id: int, message_id: int):
-#     attempts = 3
-#     for attempt in range(attempts):
-#         try:
-#             await context.bot.pin_chat_message(chat_id=chat_id, message_id=message_id)
-#             print("Сообщение успешно закреплено.")
-#             break
-#         except Exception as e:
-#             print(f"Ошибка при закреплении сообщения: {e}")
-#             if attempt < attempts - 1:
-#                 print("Попытка закрепления сообщения через 1 минуту...")
-#                 await asyncio.sleep(60)
+
+async def pin_message(context: CallbackContext, chat_id: int, message_id: int):
+    attempts = 3
+    for attempt in range(attempts):
+        try:
+            await context.bot.pin_chat_message(chat_id=chat_id, message_id=message_id)
+            print("Сообщение успешно закреплено.")
+            break
+        except Exception as e:
+            print(f"Ошибка при закреплении сообщения: {e}")
+            if attempt < attempts - 1:
+                print("Попытка закрепления сообщения через 1 минуту...")
+                await asyncio.sleep(60)
+
 
 async def start(update: Update, context: CallbackContext) -> None:
     """Отправляет сообщение с кнопкой 'Приступить'."""
@@ -187,23 +185,25 @@ async def start(update: Update, context: CallbackContext) -> None:
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text('Добро пожаловать! Нажмите "Приступить", чтобы начать.', reply_markup=reply_markup)
 
-# async def show_help(query: Update):
-#     help_text = (
-#         'Список доступных действий:\n'
-#         '1. Нажмите "Добавить событие", чтобы ввести новое событие.\n'
-#         '2. Нажмите "Показать события", чтобы увидеть все добавленные события.\n'
-#         '3. Для редактирования события используйте кнопку "Редактировать событие" на выбранном событии.\n'
-#         '4. Для удаления события используйте кнопку "Удалить".\n'
-#         '5. Вы можете вернуться в главное меню в любое время с помощью кнопки "Назад".\n'
-#         'Если у вас есть вопросы, не стесняйтесь спрашивать!'
-#     )
-#     keyboard = [
-#         [InlineKeyboardButton("Назад", callback_data='back_to_menu')]
-#     ]
-#     reply_markup = InlineKeyboardMarkup(keyboard)
-#     await query.edit_message_text(text=help_text, reply_markup=reply_markup)
+
+async def show_help(query: Update):
+    help_text = (
+        'Список доступных действий:\n'
+        '1. Нажмите "Добавить событие", чтобы ввести новое событие.\n'
+        '2. Нажмите "Показать события", чтобы увидеть все добавленные события.\n'
+        '3. Для редактирования события используйте кнопку "Редактировать событие" на выбранном событии.\n'
+        '4. Для удаления события используйте кнопку "Удалить".\n'
+        '5. Вы можете вернуться в главное меню в любое время с помощью кнопки "Назад".\n'
+    )
+    keyboard = [
+        [InlineKeyboardButton("Назад", callback_data='back_to_menu')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await query.edit_message_text(text=help_text, reply_markup=reply_markup)
+
 
 async def button_handler(update: Update, context: CallbackContext) -> None:
+    global selected_chats
     query = update.callback_query
     await query.answer()
 
@@ -233,8 +233,6 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
         context.user_data['current_menu'] = 'events_list'
         await show_events(query, context)  # Используйте query для обновления сообщения
 
-
-        
     elif query.data.startswith('show_event_details_'):
         context.user_data['current_menu'] = 'event_details'  # Устанавливаем текущее меню
         await show_event_details(update, context)  
@@ -257,22 +255,73 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
 
         # Сообщаем пользователю о редактировании
         await query.edit_message_text(
-            text=f"Введите новые данные для события (в текущем формате):\n\n{input_text}"
+            text="Введите новые данные для события (YYYY-MM-DD Описание HH:MM Повторений):",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Отмена редактирования", callback_data='cancel_edit')]])  # Кнопка отмены
         )
 
+    elif query.data == 'cancel_edit':
+        # Обработка отмены редактирования
+        await query.edit_message_text(
+            text="🛑 Редактирование отменено. Выберите действие:",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("➕ Добавить событие", callback_data='add_event')],
+                [InlineKeyboardButton("📅 Показать события", callback_data='show_events')],
+                [InlineKeyboardButton("🆘 Помощь", callback_data='help')]
+            ])
+        )
+        context.user_data['awaiting_event_input'] = False
+        del context.user_data['editing_event_index']  # Убираем индекс редактирования
+    
     elif query.data.startswith('delete_event_'):
+        # Подтверждение удаления события
         event_index = int(query.data.split('_')[-1])
+        event = events[event_index]  # Получаем удаляемое событие
+
+        await query.edit_message_text(
+            text=f"Вы действительно хотите удалить это событие:\n\n"
+                f"Дата: {event['date']}\n"
+                f"Описание: {event['description']}\n"
+                f"Время: {event['time']}\n"
+                f"Частота: {event['frequency']} раз?\n\n"
+                 "🗑️ *Выберите действие:*",
+            reply_markup=InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("✅ Подтвердить", callback_data=f'confirm_delete_{event_index}'),
+                    InlineKeyboardButton("❌ Отмена", callback_data='back_to_menu')
+                ]
+            ])
+        )
+
+    elif query.data.startswith('confirm_delete_'):
+        # Код для удаления события
         await delete_event(update, context)
 
+    elif query.data == 'select_all_groups':
+        if len(selected_chats) == len(chat_ids):  # Если все группы выбраны, снять выбор
+            selected_chats.clear()
+        else:
+            selected_chats = list(chat_ids.keys())  # Добавить все группы
 
-    elif query.data in chat_ids:
+        current_text = "Выберите, куда отправлять событие:"
+        current_markup = await get_chat_selection_keyboard()
+
+        # Проверка, изменился ли текст или разметка
+        if query.message.text != current_text or query.message.reply_markup != current_markup:
+            await query.edit_message_text(text=current_text, reply_markup=current_markup)
+
+    elif query.data in chat_ids.keys():  # Нажатие на конкретную группу
         if query.data in selected_chats:
             selected_chats.remove(query.data)
         else:
             selected_chats.append(query.data)
-        keyboard = await get_chat_selection_keyboard()
-        await query.edit_message_text(text="Выберите, куда отправлять событие:", reply_markup=keyboard)
-        
+
+        current_text = "Выберите, куда отправлять событие:"
+        current_markup = await get_chat_selection_keyboard()
+
+        # Проверка, изменился ли текст или разметка
+        if query.message.text != current_text or query.message.reply_markup != current_markup:
+            await query.edit_message_text(text=current_text, reply_markup=current_markup)
+
     elif query.data == 'back_to_menu':
         logging.debug("Кнопка 'Назад' нажата.")
         context.user_data['current_menu'] = 'main_menu'  # Смена на главное меню
@@ -283,9 +332,6 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(text='Выберите действие:', reply_markup=reply_markup)
-
-    
-
 
 
 async def handle_event_input(update: Update, context: CallbackContext) -> None:
@@ -298,15 +344,6 @@ async def handle_event_input(update: Update, context: CallbackContext) -> None:
     else:
         await update.message.reply_text("Пожалуйста, используйте меню для навигации или введите команду /help для получения помощи.")
 
-
-
-
-
-
-
-import asyncio
-import re
-import logging
 
 async def add_event(update: Update, context: CallbackContext) -> None:
     logging.debug('Ожидание ввода для добавления нового события')
@@ -366,6 +403,7 @@ async def add_event(update: Update, context: CallbackContext) -> None:
         logging.error(f'Ошибка ввода: {e}')
         await update.message.reply_text('Ошибка! Введите данные в формате: YYYY-MM-DD Описание HH:MM Повторений')
 
+
 async def show_events_as_message(chat_id, context: CallbackContext):
     logging.debug("Показать события")
     keyboard = []
@@ -389,6 +427,7 @@ async def show_events_as_message(chat_id, context: CallbackContext):
             chat_id=chat_id,
             text="Нет добавленных событий.\n\nВыберите действие:"
         )
+
 
 async def edit_event(update: Update, context: CallbackContext) -> None:
     event_index = context.user_data['editing_event_index']
@@ -447,14 +486,6 @@ async def edit_event(update: Update, context: CallbackContext) -> None:
         await update.message.reply_text('Ошибка! Введите данные в формате: YYYY-MM-DD Описание HH:MM Повторений')
 
 
-
-
-
-
-
-
-
-
 async def delete_event(update: Update, context: CallbackContext) -> None:
     try:
         query = update.callback_query  # Получаем callback_query
@@ -464,16 +495,13 @@ async def delete_event(update: Update, context: CallbackContext) -> None:
             deleted_event = events.pop(event_index)  # Удаляем событие
             save_events(events)  # Сохраняем изменения
             
-            await query.answer(f'Событие удалено: {deleted_event}')  # Уведомляем пользователя
+            await query.answer(f'✅ Событие удалено: {deleted_event["date"]} - {deleted_event["description"]}')  # Уведомляем пользователя
             await show_events(query, context)  # Показываем оставшиеся события после удаления
         else:
-            await query.answer("Событие не найдено.")  # Уведомление о том, что событие не найдено
+            await query.answer("⚠️ Событие не найдено.")  # Уведомление о том, что событие не найдено
     except Exception as e:
         logging.error(f'Ошибка при удалении события: {e}')
-        await query.answer("Произошла ошибка при удалении события.")
-
-
-
+        await query.answer("⚠️ Произошла ошибка при удалении события.")
 
 
 async def show_events(query: CallbackQuery, context: CallbackContext):
@@ -500,18 +528,6 @@ async def show_events(query: CallbackQuery, context: CallbackContext):
     logging.debug("Отображаем сообщение о событиях.")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 async def show_event_details(update: Update, context: CallbackContext) -> None:
     """Показывает детали выбранного события с кнопками редактирования и удаления."""
     query = update.callback_query
@@ -536,24 +552,17 @@ async def show_event_details(update: Update, context: CallbackContext) -> None:
     await query.edit_message_text(text=text_message, reply_markup=reply_markup)
 
 
-# async def back_to_menu(query: Update) -> None:
-#     keyboard = [
-#         [InlineKeyboardButton("Добавить событие", callback_data='add_event')],
-#         [InlineKeyboardButton("Показать события", callback_data='show_events')],
-#         [InlineKeyboardButton("Помощь", callback_data='help')]
-#     ]
-#     reply_markup = InlineKeyboardMarkup(keyboard)
-#     await query.edit_message_text(text='Выберите действие:', reply_markup=reply_markup)
-
 async def get_chat_selection_keyboard():
     keyboard = []
     for chat in chat_ids:
         if chat_ids[chat] is not None:
             button_label = f"✅ {chat}" if chat in selected_chats else chat
             keyboard.append([InlineKeyboardButton(button_label, callback_data=chat)])
-    keyboard.append([InlineKeyboardButton("Назад", callback_data='back_to_menu')])  # Кнопка назад
+    keyboard.append([InlineKeyboardButton("Выбрать все филиалы", callback_data='select_all_groups')])        
     keyboard.append([InlineKeyboardButton("Подтвердить выбор", callback_data='confirm_event')])
+    keyboard.append([InlineKeyboardButton("Назад", callback_data='back_to_menu')])  # Кнопка назад
     return InlineKeyboardMarkup(keyboard)
+
 
 async def check_events(context: CallbackContext) -> None:
     print("Проверка событий...")
@@ -581,9 +590,6 @@ async def check_events(context: CallbackContext) -> None:
                     print(f"Общая ошибка: {e}")
 
 
-
-
-
 async def handle_message(update: Update, context: CallbackContext) -> None:
     if update.message.text == '/start':
         await start(update, context)
@@ -591,6 +597,7 @@ async def handle_message(update: Update, context: CallbackContext) -> None:
         await handle_event_input(update, context)
     else:
         await update.message.reply_text("Пожалуйста, используйте меню для навигации или введите команду /help для получения помощи.")
+
 
 def main() -> None:
     global events, chat_ids
@@ -607,7 +614,7 @@ def main() -> None:
     # application.add_handler(CallbackQueryHandler(handle_selection, pattern='select_employee'))
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    # application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_message))
+    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_message))
     # application.add_handler(CallbackQueryHandler(handle_selection))
 
     # Определение действительного chat_id для планирования
@@ -626,6 +633,6 @@ def main() -> None:
     print("Бот запущен. Ожидание команд...")
     application.run_polling()
 
+
 if __name__ == '__main__': 
     main()
-    
